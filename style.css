@@ -217,7 +217,7 @@ section h2::after {
 }
 
 /* ==========================================================================
-   4. HERO HERO SECTION
+   4. HERO SECTION
    ========================================================================== */
 .hero {
     min-height: 100vh;
@@ -258,56 +258,71 @@ section h2::after {
 }
 
 /* ==========================================================================
-   5. ABOUT SECTION
+   5. EDUCATION SECTION
    ========================================================================== */
-.about {
+.education {
     background-color: rgba(30, 41, 59, 0.4);
 }
 
-.about-content {
+.education-grid {
     display: grid;
-    grid-template-columns: 1fr 350px;
-    gap: 60px;
-    align-items: center;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 32px;
 }
 
-.about-text p {
-    color: var(--text-secondary);
-    font-size: 1.1rem;
-    margin-bottom: 24px;
-}
-
-/* Social Link Circle Cards */
-.social-links {
-    display: flex;
-    gap: 16px;
-    margin-top: 32px;
-}
-
-.social-links a {
-    width: 44px;
-    height: 44px;
+.education-card {
     background-color: var(--bg-secondary);
-    border: 1px solid rgba(255, 255, 255, 0.05);
-    border-radius: 50%;
+    padding: 32px;
+    border-radius: 16px;
+    border: 1px solid rgba(255, 255, 255, 0.03);
+    transition: var(--transition);
+}
+
+.education-card:hover {
+    transform: translateY(-5px);
+    border-color: rgba(99, 102, 241, 0.3);
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.2);
+}
+
+.education-header {
     display: flex;
-    justify-content: center;
     align-items: center;
-    font-size: 1.2rem;
+    gap: 16px;
+    margin-bottom: 20px;
+}
+
+.education-header i {
+    font-size: 2rem;
+    color: var(--accent);
+}
+
+.education-header h3 {
+    font-size: 1.3rem;
+}
+
+.education-institution {
+    font-weight: 600;
+    color: var(--accent);
+    margin-bottom: 8px;
+    font-size: 1rem;
+}
+
+.education-location {
     color: var(--text-secondary);
+    margin-bottom: 8px;
+    font-size: 0.95rem;
 }
 
-.social-links a:hover {
-    color: #ffffff;
-    background-color: var(--accent);
-    transform: translateY(-4px);
-    box-shadow: 0 8px 20px rgba(99, 102, 241, 0.3);
+.education-period {
+    color: var(--text-muted);
+    margin-bottom: 12px;
+    font-size: 0.9rem;
 }
 
-.about-image img {
-    border-radius: 20px;
-    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
-    border: 2px solid rgba(255, 255, 255, 0.05);
+.education-focus {
+    color: var(--text-secondary);
+    font-size: 0.95rem;
+    line-height: 1.5;
 }
 
 /* ==========================================================================
@@ -350,113 +365,94 @@ section h2::after {
 }
 
 /* ==========================================================================
-   7. PROJECTS SECTION
+   7. EXPERIENCE SECTION
    ========================================================================== */
-.projects {
+.experience {
     background-color: rgba(30, 41, 59, 0.4);
 }
 
-.projects-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-    gap: 32px;
-}
-
-.project-card {
-    background-color: var(--bg-secondary);
-    border-radius: 16px;
-    overflow: hidden;
-    border: 1px solid rgba(255, 255, 255, 0.03);
-    display: flex;
-    flex-direction: column;
-    transition: var(--transition);
-}
-
-.project-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
-}
-
-.project-image {
-    overflow: hidden;
+.experience-timeline {
+    max-width: 800px;
+    margin: 0 auto;
     position: relative;
-    aspect-ratio: 16/10;
+    padding: 20px 0;
 }
 
-.project-image img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
+.experience-timeline::before {
+    content: '';
+    position: absolute;
+    left: 50%;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background-color: rgba(99, 102, 241, 0.2);
+    transform: translateX(-1px);
+}
+
+.timeline-item {
+    margin-bottom: 40px;
+    position: relative;
+}
+
+.timeline-item:nth-child(odd) .timeline-content {
+    margin-left: 0;
+    margin-right: auto;
+    padding-right: 50px;
+    width: 48%;
+    text-align: right;
+}
+
+.timeline-item:nth-child(even) .timeline-content {
+    margin-left: auto;
+    margin-right: 0;
+    padding-left: 50px;
+    width: 48%;
+    text-align: left;
+}
+
+.timeline-marker {
+    position: absolute;
+    left: 50%;
+    top: 20px;
+    width: 16px;
+    height: 16px;
+    background-color: var(--accent);
+    border: 4px solid var(--bg-primary);
+    border-radius: 50%;
+    transform: translateX(-50%);
+    z-index: 1;
+}
+
+.timeline-content {
+    background-color: var(--bg-secondary);
+    padding: 24px;
+    border-radius: 12px;
+    border: 1px solid rgba(99, 102, 241, 0.2);
     transition: var(--transition);
 }
 
-.project-card:hover .project-image img {
-    transform: scale(1.05);
+.timeline-content:hover {
+    border-color: rgba(99, 102, 241, 0.5);
+    box-shadow: 0 8px 20px rgba(99, 102, 241, 0.1);
 }
 
-.project-content {
-    padding: 28px;
-    display: flex;
-    flex-direction: column;
-    flex-grow: 1;
+.timeline-content h3 {
+    font-size: 1.2rem;
+    margin-bottom: 8px;
+    color: var(--text-primary);
 }
 
-.project-content h3 {
-    font-size: 1.35rem;
+.timeline-period {
+    color: var(--accent);
+    font-weight: 600;
+    font-size: 0.9rem;
     margin-bottom: 12px;
 }
 
-.project-content p {
+.timeline-content p {
     color: var(--text-secondary);
     font-size: 0.95rem;
-    margin-bottom: 24px;
-}
-
-/* Tech Pills Stack */
-.project-tags {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-    margin-top: auto;
-    margin-bottom: 24px;
-}
-
-.tag {
-    background-color: rgba(99, 102, 241, 0.1);
-    color: #a5b4fc;
-    padding: 4px 12px;
-    border-radius: 20px;
-    font-size: 0.8rem;
-    font-weight: 500;
-}
-
-.project-links {
-    display: flex;
-    gap: 20px;
-}
-
-.link-btn {
-    font-size: 0.9rem;
-    font-weight: 600;
-    display: flex;
-    align-items: center;
-    gap: 6px;
-}
-
-.link-btn:first-child {
-    color: var(--accent);
-}
-
-.link-btn:first-child:hover {
-    color: var(--accent-hover);
-}
-
-.link-btn:last-child {
-    color: var(--text-secondary);
-}
-
-.link-btn:last-child:hover {
-    color: var(--text-primary);
+    line-height: 1.6;
 }
 
 /* ==========================================================================
@@ -487,19 +483,27 @@ section h2::after {
     background-color: var(--bg-secondary);
     padding: 24px;
     border-radius: 12px;
-    display: grid;
-    grid-template-columns: 50px 1fr;
-    align-items: center;
+    display: flex;
+    gap: 20px;
+    align-items: flex-start;
+    transition: var(--transition);
+}
+
+.info-item:hover {
+    border: 1px solid rgba(99, 102, 241, 0.3);
+    box-shadow: 0 8px 20px rgba(99, 102, 241, 0.1);
 }
 
 .info-item i {
     font-size: 1.5rem;
     color: var(--accent);
+    flex-shrink: 0;
+    margin-top: 4px;
 }
 
 .info-item h3 {
     font-size: 1.1rem;
-    margin-bottom: 2px;
+    margin-bottom: 4px;
 }
 
 .info-item p {
@@ -557,16 +561,27 @@ section h2::after {
    10. MOBILE RESPONSIVE MEDIA QUERIES
    ========================================================================== */
 @media (max-width: 992px) {
-    .about-content,
     .contact-content {
         grid-template-columns: 1fr;
         gap: 40px;
     }
     
-    .about-image {
-        grid-row: 1; /* Pushes image to the top on smaller widths */
-        max-width: 300px;
-        margin: 0 auto;
+    .experience-timeline::before {
+        left: 20px;
+    }
+    
+    .timeline-marker {
+        left: 20px;
+    }
+    
+    .timeline-item:nth-child(odd) .timeline-content,
+    .timeline-item:nth-child(even) .timeline-content {
+        width: 100%;
+        margin-left: 0;
+        margin-right: 0;
+        padding-left: 80px;
+        padding-right: 24px;
+        text-align: left;
     }
 }
 
@@ -620,5 +635,9 @@ section h2::after {
     
     .hero-buttons {
         flex-direction: column;
+    }
+    
+    .education-grid {
+        grid-template-columns: 1fr;
     }
 }
