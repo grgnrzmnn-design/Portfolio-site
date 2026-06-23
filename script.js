@@ -45,7 +45,7 @@ const observer = new IntersectionObserver(function (entries) {
 }, observerOptions);
 
 // Observe all cards and sections
-document.querySelectorAll('.skill-card, .project-card, .info-item').forEach(el => {
+document.querySelectorAll('.skill-card, .education-card, .info-item, .timeline-content').forEach(el => {
     observer.observe(el);
 });
 
@@ -75,7 +75,7 @@ if (contactForm) {
 // Add fade-in animation styles dynamically
 const style = document.createElement('style');
 style.textContent = `
-    .skill-card, .project-card, .info-item {
+    .skill-card, .education-card, .info-item, .timeline-content {
         opacity: 0;
         animation: fadeIn 0.6s ease-in-out forwards;
     }
