@@ -56,19 +56,18 @@ if (contactForm) {
 
         console.log('Form submitted:', { name, email, message });
         
-        // Отправка на сервис EmailJS
         sendEmailViaEmailJS(name, email, message);
         
         this.reset();
     });
 }
 
-// Функция для отправки через EmailJS
+
 function sendEmailViaEmailJS(name, email, message) {
-    // Замените на ваши реальные ID из EmailJS
-    const SERVICE_ID = 'YOUR_SERVICE_ID';
-    const TEMPLATE_ID = 'YOUR_TEMPLATE_ID';
-    const PUBLIC_KEY = 'YOUR_PUBLIC_KEY';
+    
+    const SERVICE_ID = 'service_wz2pglu';
+    const TEMPLATE_ID = 'template_e9tym0u';
+    const PUBLIC_KEY = 'sgdQIdSdXs4BchEI6';
 
     const templateParams = {
         to_email: 'grgnrzmnn@gmail.com',
