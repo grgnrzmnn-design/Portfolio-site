@@ -1,4 +1,3 @@
-
 const hamburger = document.querySelector('.hamburger');
 const navMenu = document.querySelector('.nav-menu');
 
@@ -57,10 +56,50 @@ if (contactForm) {
 
         console.log('Form submitted:', { name, email, message });
         
-        alert('Thank you for your message! I will get back to you soon.');
+        // Отправка на сервис EmailJS
+        sendEmailViaEmailJS(name, email, message);
         
-  
         this.reset();
+    });
+}
+
+// Функция для отправки через EmailJS
+function sendEmailViaEmailJS(name, email, message) {
+    // Замените на ваши реальные ID из EmailJS
+    const SERVICE_ID = 'YOUR_SERVICE_ID';
+    const TEMPLATE_ID = 'YOUR_TEMPLATE_ID';
+    const PUBLIC_KEY = 'YOUR_PUBLIC_KEY';
+
+    const templateParams = {
+        to_email: 'grgnrzmnn@gmail.com',
+        from_name: name,
+        from_email: email,
+        message: message
+    };
+
+    fetch('https://api.emailjs.com/api/v1.0/email/send', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            service_id: SERVICE_ID,
+            template_id: TEMPLATE_ID,
+            user_id: PUBLIC_KEY,
+            template_params: templateParams
+        })
+    })
+    .then(response => {
+        if (response.ok) {
+            alert('Thank you for your message! I will get back to you soon.');
+            console.log('Email sent successfully');
+        } else {
+            alert('Failed to send message. Please try again.');
+        }
+    })
+    .catch(error => {
+        console.error('Error sending email:', error);
+        alert('An error occurred. Please try again later.');
     });
 }
 
