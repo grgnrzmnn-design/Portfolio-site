@@ -1,4 +1,4 @@
-// Mobile Menu Toggle
+
 const hamburger = document.querySelector('.hamburger');
 const navMenu = document.querySelector('.nav-menu');
 
@@ -9,7 +9,6 @@ if (hamburger) {
     });
 }
 
-// Close menu when clicking on a link
 const navLinks = document.querySelectorAll('.nav-menu a');
 navLinks.forEach(link => {
     link.addEventListener('click', () => {
@@ -18,7 +17,6 @@ navLinks.forEach(link => {
     });
 });
 
-// Smooth scroll for navigation links
 document.querySelectorAll('a[href^="#"]').forEach(anchor => {
     anchor.addEventListener('click', function (e) {
         e.preventDefault();
@@ -29,7 +27,6 @@ document.querySelectorAll('a[href^="#"]').forEach(anchor => {
     });
 });
 
-// Scroll animations
 const observerOptions = {
     threshold: 0.1,
     rootMargin: '0px 0px -100px 0px'
@@ -44,35 +41,29 @@ const observer = new IntersectionObserver(function (entries) {
     });
 }, observerOptions);
 
-// Observe all cards and sections
 document.querySelectorAll('.skill-card, .education-card, .info-item, .timeline-content').forEach(el => {
     observer.observe(el);
 });
 
-// Form submission
 const contactForm = document.querySelector('.contact-form');
 if (contactForm) {
     contactForm.addEventListener('submit', function (e) {
         e.preventDefault();
-        
-        // Get form values
+       
         const formData = new FormData(this);
         const name = this.querySelector('input[type="text"]').value;
         const email = this.querySelector('input[type="email"]').value;
         const message = this.querySelector('textarea').value;
 
-        // Here you would typically send the data to a server
         console.log('Form submitted:', { name, email, message });
         
-        // Show success message
         alert('Thank you for your message! I will get back to you soon.');
         
-        // Reset form
+  
         this.reset();
     });
 }
 
-// Add fade-in animation styles dynamically
 const style = document.createElement('style');
 style.textContent = `
     .skill-card, .education-card, .info-item, .timeline-content {
@@ -97,7 +88,6 @@ style.textContent = `
 `;
 document.head.appendChild(style);
 
-// Navbar background on scroll
 const navbar = document.querySelector('.navbar');
 window.addEventListener('scroll', () => {
     if (window.scrollY > 50) {
@@ -107,7 +97,6 @@ window.addEventListener('scroll', () => {
     }
 });
 
-// Add active state to nav links based on scroll position
 window.addEventListener('scroll', () => {
     let current = '';
     const sections = document.querySelectorAll('section');
