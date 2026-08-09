@@ -1,3 +1,8 @@
+const EMAILJS_SDK_URL = 'https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/index.min.js';
+const PUBLIC_KEY = 'sgdQIdSdXs4BchEI6';
+const SERVICE_ID = 'service_wz2pglu';
+const TEMPLATE_ID = 'template_e9tym0u';
+
 const hamburger = document.querySelector('.hamburger');
 const navMenu = document.querySelector('.nav-menu');
 
@@ -44,7 +49,52 @@ document.querySelectorAll('.skill-card, .education-card, .info-item, .timeline-c
     observer.observe(el);
 });
 
-// Contact form handling using EmailJS SDK
+// Utility: load EmailJS SDK if it's not already available
+function loadEmailJSSDK() {
+    return new Promise((resolve, reject) => {
+        if (window.emailjs && typeof window.emailjs.send === 'function') {
+            // already available
+            try {
+                window.emailjs.init(PUBLIC_KEY);
+            } catch (e) {
+                // ignore init errors
+            }
+            return resolve(window.emailjs);
+        }
+
+        // If a script tag for EmailJS already exists in the document, attach listeners
+        const existing = Array.from(document.scripts).find(s => s.src && s.src.includes('emailjs'));
+        if (existing) {
+            existing.addEventListener('load', () => {
+                if (window.emailjs) {
+                    try { window.emailjs.init(PUBLIC_KEY); } catch (e) {}
+                    resolve(window.emailjs);
+                } else {
+                    reject(new Error('EmailJS loaded but `emailjs` global is missing'));
+                }
+            });
+            existing.addEventListener('error', () => reject(new Error('Failed to load EmailJS SDK')));
+            return;
+        }
+
+        // Otherwise, dynamically inject the SDK
+        const s = document.createElement('script');
+        s.src = EMAILJS_SDK_URL;
+        s.async = true;
+        s.onload = () => {
+            if (window.emailjs) {
+                try { window.emailjs.init(PUBLIC_KEY); } catch (e) {}
+                resolve(window.emailjs);
+            } else {
+                reject(new Error('EmailJS SDK loaded but `emailjs` global is missing'));
+            }
+        };
+        s.onerror = () => reject(new Error('Failed to load EmailJS SDK'));
+        document.head.appendChild(s);
+    });
+}
+
+// Contact form handling using EmailJS SDK (with robust loading & fallback)
 const contactForm = document.querySelector('#contact-form');
 if (contactForm) {
     const statusEl = document.getElementById('form-status');
@@ -87,74 +137,79 @@ if (contactForm) {
 
         setStatus('Sending message…');
 
-        // EmailJS configuration
-        const SERVICE_ID = 'service_wz2pglu';
-        const TEMPLATE_ID = 'template_e9tym0u';
-        // emailjs.init(...) is already called in index.html
+        // Try to load EmailJS SDK (or use existing) and send via SDK first
+        loadEmailJSSDK()
+            .then(() => {
+                if (window.emailjs && typeof window.emailjs.send === 'function') {
+                    // include public key explicitly as 4th parameter for reliability
+                    return window.emailjs.send(SERVICE_ID, TEMPLATE_ID, {
+                        to_email: 'grgnrzmnn@gmail.com',
+                        from_name: name,
+                        reply_to: email,
+                        message: message
+                    }, PUBLIC_KEY);
+                }
+                // If SDK still not available, reject to trigger fallback
+                return Promise.reject(new Error('EmailJS SDK not available after load'));
+            })
+            .then(() => {
+                setStatus('Message sent! Thank you — I will reply as soon as I can.');
+                contactForm.reset();
+            })
+            .catch((sdkError) => {
+                // If SDK failed to send or didn't load, fall back to REST API call
+                console.warn('EmailJS SDK send failed or not available:', sdkError);
 
-        const templateParams = {
-            to_email: 'grgnrzmnn@gmail.com',
-            from_name: name,
-            reply_to: email,
-            message: message
-        };
-
-        // Use EmailJS SDK method which handles CORS and proper headers
-        if (window.emailjs && typeof window.emailjs.send === 'function') {
-            window.emailjs.send(SERVICE_ID, TEMPLATE_ID, templateParams)
-                .then(function () {
-                    setStatus('Message sent! Thank you — I will reply as soon as I can.');
-                    contactForm.reset();
-                }, function (error) {
-                    console.error('EmailJS error:', error);
-                    setStatus('Failed to send message. Please try again later or contact me directly via email.', true);
+                // REST fallback
+                fetch('https://api.emailjs.com/api/v1.0/email/send', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        service_id: SERVICE_ID,
+                        template_id: TEMPLATE_ID,
+                        user_id: PUBLIC_KEY,
+                        template_params: {
+                            to_email: 'grgnrzmnn@gmail.com',
+                            from_name: name,
+                            reply_to: email,
+                            message: message
+                        }
+                    })
                 })
-                .finally(function () {
+                .then(response => {
+                    if (response.ok) {
+                        setStatus('Message sent! Thank you — I will reply as soon as I can.');
+                        contactForm.reset();
+                    } else {
+                        response.text().then(text => console.error('EmailJS REST response:', response.status, text));
+                        setStatus('Failed to send message. Please try again later or contact me directly via email.', true);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error sending email (fallback):', error);
+                    setStatus('An error occurred. Please try again later.', true);
+                })
+                .finally(() => {
                     if (submitBtn) {
                         submitBtn.disabled = false;
                         submitBtn.textContent = originalBtnText;
                     }
                 });
-        } else {
-            // Fallback: try REST API
-            fetch('https://api.emailjs.com/api/v1.0/email/send', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    service_id: SERVICE_ID,
-                    template_id: TEMPLATE_ID,
-                    user_id: 'sgdQIdSdXs4BchEI6',
-                    template_params: templateParams
-                })
-            })
-            .then(response => {
-                if (response.ok) {
-                    setStatus('Message sent! Thank you — I will reply as soon as I can.');
-                    contactForm.reset();
-                } else {
-                    setStatus('Failed to send message. Please try again later or contact me directly via email.', true);
-                }
-            })
-            .catch(error => {
-                console.error('Error sending email (fallback):', error);
-                setStatus('An error occurred. Please try again later.', true);
             })
             .finally(() => {
+                // If SDK path succeeded, re-enable button here as well
+                if (submitBtn && !submitBtn.disabled) return; // already reset by fallback finally
                 if (submitBtn) {
                     submitBtn.disabled = false;
                     submitBtn.textContent = originalBtnText;
                 }
             });
-        }
     });
 }
 
 
 function sendEmailViaEmailJS(name, email, message) {
     // kept for backward compatibility in case any other code calls it
-    const SERVICE_ID = 'service_wz2pglu';
-    const TEMPLATE_ID = 'template_e9tym0u';
-
     const templateParams = {
         to_email: 'grgnrzmnn@gmail.com',
         from_name: name,
@@ -163,7 +218,7 @@ function sendEmailViaEmailJS(name, email, message) {
     };
 
     if (window.emailjs && typeof window.emailjs.send === 'function') {
-        return window.emailjs.send(SERVICE_ID, TEMPLATE_ID, templateParams);
+        return window.emailjs.send(SERVICE_ID, TEMPLATE_ID, templateParams, PUBLIC_KEY);
     }
 
     return fetch('https://api.emailjs.com/api/v1.0/email/send', {
@@ -172,7 +227,7 @@ function sendEmailViaEmailJS(name, email, message) {
         body: JSON.stringify({
             service_id: SERVICE_ID,
             template_id: TEMPLATE_ID,
-            user_id: 'sgdQIdSdXs4BchEI6',
+            user_id: PUBLIC_KEY,
             template_params: templateParams
         })
     });
