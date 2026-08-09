@@ -4,7 +4,7 @@
   
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Portfolio of Gurgen Arzumanyan - C++ Developer and Student at Armenian State Pedagogical University. Explore my projects, skills, and experience in web development">
+    <meta name="description" content="Portfolio of Gurgen Arzumanyan - C++ Developer and Student at Armenian State Pedagogical University. Explore my projects, skills, and experience in web develop[...]>
     <meta name="keywords" content="C++, Developer, Portfolio, Web Development, Programming, Student">
     <meta name="author" content="Gurgen Arzumanyan">
     <meta name="theme-color" content="#3498db">
@@ -21,7 +21,7 @@
    
     <title>Gurgen Arzumanyan - Portfolio | C++ Developer</title>
     <link rel="stylesheet" href="style.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha512-iecdLmaskl7CVJkEZSMUkrQ6usKhaAa6BWm50dggVHR2kcJ+9UWQubUKeIy+sMUQRsv05fY+Aw">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha512-iecdLmaskl7CVJkEZSMUkrQ6usKhaAa6BWm50dggVHR2kcJ+9UWQubUKeIy+sMUQRsv05fY+Aw[...]" crossorigin="anonymous" referrerpolicy="no-referrer" />
     
     
     <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/index.min.js"></script>
@@ -154,7 +154,7 @@
             </div>
         </section>
 
-      
+        
         <section id="experience" class="experience" aria-labelledby="experience-title">
             <div class="container">
                 <h2 id="experience-title">Experience & Training</h2>
@@ -229,20 +229,30 @@
                             </div>
                         </div>
                     </div>
-                    <form class="contact-form" method="POST" action="#">
+                    <form id="contact-form" class="contact-form" method="POST" action="#">
                         <div class="form-group">
                             <label for="contact-name">Your Name</label>
-                            <input type="text" id="contact-name" name="name" placeholder="Your Name" required aria-required="true">
+                            <input type="text" id="contact-name" name="from_name" placeholder="Your Name" required aria-required="true">
                         </div>
                         <div class="form-group">
                             <label for="contact-email">Your Email</label>
-                            <input type="email" id="contact-email" name="email" placeholder="Your Email" required aria-required="true">
+                            <input type="email" id="contact-email" name="reply_to" placeholder="Your Email" required aria-required="true">
                         </div>
                         <div class="form-group">
                             <label for="contact-message">Your Message</label>
                             <textarea id="contact-message" name="message" placeholder="Your Message" rows="5" required aria-required="true"></textarea>
                         </div>
+
+                        <!-- Honeypot (anti-spam) -->
+                        <div style="position:absolute; left:-9999px; top:auto; width:1px; height:1px; overflow:hidden;" aria-hidden="true">
+                            <label for="company">Company</label>
+                            <input type="text" id="company" name="company" tabindex="-1" autocomplete="off">
+                        </div>
+
                         <button type="submit" class="btn btn-primary">Send Message</button>
+
+                        <!-- Status area for screen readers & visible feedback -->
+                        <div id="form-status" role="status" aria-live="polite" class="form-status" style="margin-top:0.5rem"></div>
                     </form>
                 </div>
             </div>

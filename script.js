@@ -44,61 +44,137 @@ document.querySelectorAll('.skill-card, .education-card, .info-item, .timeline-c
     observer.observe(el);
 });
 
-const contactForm = document.querySelector('.contact-form');
+// Contact form handling using EmailJS SDK
+const contactForm = document.querySelector('#contact-form');
 if (contactForm) {
+    const statusEl = document.getElementById('form-status');
+
+    function setStatus(text, isError = false) {
+        if (!statusEl) return;
+        statusEl.textContent = text;
+        statusEl.style.color = isError ? '#c0392b' : '#2ecc71';
+    }
+
     contactForm.addEventListener('submit', function (e) {
         e.preventDefault();
-       
-        const formData = new FormData(this);
-        const name = this.querySelector('input[type="text"]').value;
-        const email = this.querySelector('input[type="email"]').value;
-        const message = this.querySelector('textarea').value;
 
-        console.log('Form submitted:', { name, email, message });
-        
-        sendEmailViaEmailJS(name, email, message);
-        
-        this.reset();
+        // Honeypot check
+        const honeypot = contactForm.querySelector('input[name="company"]');
+        if (honeypot && honeypot.value) {
+            // likely bot
+            return;
+        }
+
+        const submitBtn = contactForm.querySelector('button[type="submit"]');
+        const originalBtnText = submitBtn ? submitBtn.textContent : '';
+        if (submitBtn) {
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Sending…';
+        }
+
+        const name = (contactForm.querySelector('input[name="from_name"]') || {}).value || '';
+        const email = (contactForm.querySelector('input[name="reply_to"]') || {}).value || '';
+        const message = (contactForm.querySelector('textarea[name="message"]') || {}).value || '';
+
+        if (!name.trim() || !email.trim() || !message.trim()) {
+            setStatus('Please complete all fields before sending.', true);
+            if (submitBtn) {
+                submitBtn.disabled = false;
+                submitBtn.textContent = originalBtnText;
+            }
+            return;
+        }
+
+        setStatus('Sending message…');
+
+        // EmailJS configuration
+        const SERVICE_ID = 'service_wz2pglu';
+        const TEMPLATE_ID = 'template_e9tym0u';
+        // emailjs.init(...) is already called in index.html
+
+        const templateParams = {
+            to_email: 'grgnrzmnn@gmail.com',
+            from_name: name,
+            reply_to: email,
+            message: message
+        };
+
+        // Use EmailJS SDK method which handles CORS and proper headers
+        if (window.emailjs && typeof window.emailjs.send === 'function') {
+            window.emailjs.send(SERVICE_ID, TEMPLATE_ID, templateParams)
+                .then(function () {
+                    setStatus('Message sent! Thank you — I will reply as soon as I can.');
+                    contactForm.reset();
+                }, function (error) {
+                    console.error('EmailJS error:', error);
+                    setStatus('Failed to send message. Please try again later or contact me directly via email.', true);
+                })
+                .finally(function () {
+                    if (submitBtn) {
+                        submitBtn.disabled = false;
+                        submitBtn.textContent = originalBtnText;
+                    }
+                });
+        } else {
+            // Fallback: try REST API
+            fetch('https://api.emailjs.com/api/v1.0/email/send', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    service_id: SERVICE_ID,
+                    template_id: TEMPLATE_ID,
+                    user_id: 'sgdQIdSdXs4BchEI6',
+                    template_params: templateParams
+                })
+            })
+            .then(response => {
+                if (response.ok) {
+                    setStatus('Message sent! Thank you — I will reply as soon as I can.');
+                    contactForm.reset();
+                } else {
+                    setStatus('Failed to send message. Please try again later or contact me directly via email.', true);
+                }
+            })
+            .catch(error => {
+                console.error('Error sending email (fallback):', error);
+                setStatus('An error occurred. Please try again later.', true);
+            })
+            .finally(() => {
+                if (submitBtn) {
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = originalBtnText;
+                }
+            });
+        }
     });
 }
 
 
 function sendEmailViaEmailJS(name, email, message) {
-    
+    // kept for backward compatibility in case any other code calls it
     const SERVICE_ID = 'service_wz2pglu';
     const TEMPLATE_ID = 'template_e9tym0u';
-    const PUBLIC_KEY = 'sgdQIdSdXs4BchEI6';
 
     const templateParams = {
         to_email: 'grgnrzmnn@gmail.com',
         from_name: name,
-        from_email: email,
+        reply_to: email,
         message: message
     };
 
-    fetch('https://api.emailjs.com/api/v1.0/email/send', {
+    if (window.emailjs && typeof window.emailjs.send === 'function') {
+        return window.emailjs.send(SERVICE_ID, TEMPLATE_ID, templateParams);
+    }
+
+    return fetch('https://api.emailjs.com/api/v1.0/email/send', {
         method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
             service_id: SERVICE_ID,
             template_id: TEMPLATE_ID,
-            user_id: PUBLIC_KEY,
+            user_id: 'sgdQIdSdXs4BchEI6',
             template_params: templateParams
         })
-    })
-    .then(response => {
-        if (response.ok) {
-            alert('Thank you for your message! I will get back to you soon.');
-            console.log('Email sent successfully');
-        } else {
-            alert('Failed to send message. Please try again.');
-        }
-    })
-    .catch(error => {
-        console.error('Error sending email:', error);
-        alert('An error occurred. Please try again later.');
     });
 }
 
