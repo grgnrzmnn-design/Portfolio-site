@@ -5,6 +5,10 @@ const TEMPLATE_ID = 'template_e9tym0u';
 function getEmailJS(timeoutMs = 5000) {
     return new Promise((resolve, reject) => {
         if (window.emailjs && typeof window.emailjs.send === 'function') {
+            // attempt to init (safe to call multiple times)
+            if (typeof window.emailjs.init === 'function' && PUBLIC_KEY) {
+                try { window.emailjs.init(PUBLIC_KEY); } catch (e) { console.warn('EmailJS init() threw:', e); }
+            }
             return resolve(window.emailjs);
         }
         
@@ -13,6 +17,9 @@ function getEmailJS(timeoutMs = 5000) {
             attempts++;
             if (window.emailjs && typeof window.emailjs.send === 'function') {
                 clearInterval(check);
+                if (typeof window.emailjs.init === 'function' && PUBLIC_KEY) {
+                    try { window.emailjs.init(PUBLIC_KEY); } catch (e) { console.warn('EmailJS init() threw:', e); }
+                }
                 return resolve(window.emailjs);
             }
             if (attempts > timeoutMs / 100) {
@@ -115,12 +122,20 @@ if (contactForm) {
         getEmailJS()
             .then(() => {
                 console.debug('[Contact] EmailJS ready — calling send');
-                return window.emailjs.send(SERVICE_ID, TEMPLATE_ID, {
+                // template variable names must match what's in your EmailJS template
+                const templateParams = {
                     to_email: 'grgnrzmnn@gmail.com',
                     from_name: name,
                     reply_to: email,
                     message: message
-                });
+                };
+
+                // quick runtime sanity-check: ensure service/template ids are set
+                if (!SERVICE_ID || !TEMPLATE_ID) {
+                    throw new Error('Missing EmailJS SERVICE_ID or TEMPLATE_ID');
+                }
+
+                return window.emailjs.send(SERVICE_ID, TEMPLATE_ID, templateParams);
             })
             .then((result) => {
                 console.debug('[Contact] Send succeeded:', result);
@@ -128,8 +143,10 @@ if (contactForm) {
                 contactForm.reset();
             })
             .catch((error) => {
+                // emailjs may return an object with .text or .status/text in different SDK versions
                 console.error('[Contact] Send failed:', error);
-                setStatus('Failed to send message. Please try again later or email me directly.', true);
+                const serverMsg = error && (error.text || error.message || (error.status && JSON.stringify(error.status)) || JSON.stringify(error));
+                setStatus('Failed to send message. ' + (serverMsg ? serverMsg : 'Please try again later or email me directly.'), true);
             })
             .finally(() => {
                 if (submitBtn) {
