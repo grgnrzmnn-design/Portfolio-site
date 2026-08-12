@@ -1,7 +1,30 @@
-const EMAILJS_SDK_URL = 'https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/index.min.js';
 const PUBLIC_KEY = 'sgdQIdSdXs4BchEI6';
 const SERVICE_ID = 'service_wz2pglu';
 const TEMPLATE_ID = 'template_e9tym0u';
+
+// Remove the duplicate SDK loading logic since it's already in HTML
+// Just wait for emailjs to be available
+function getEmailJS(timeoutMs = 5000) {
+    return new Promise((resolve, reject) => {
+        if (window.emailjs && typeof window.emailjs.send === 'function') {
+            return resolve(window.emailjs);
+        }
+        
+        let attempts = 0;
+        const check = setInterval(() => {
+            attempts++;
+            if (window.emailjs && typeof window.emailjs.send === 'function') {
+                clearInterval(check);
+                return resolve(window.emailjs);
+            }
+            if (attempts > timeoutMs / 100) {
+                clearInterval(check);
+                reject(new Error('EmailJS not available'));
+            }
+        }, 100);
+    });
+}
+
 const hamburger = document.querySelector('.hamburger');
 const navMenu = document.querySelector('.nav-menu');
 
@@ -48,60 +71,6 @@ document.querySelectorAll('.skill-card, .education-card, .info-item, .timeline-c
     observer.observe(el);
 });
 
-function loadEmailJSSDK(timeoutMs = 8000) {
-    return new Promise((resolve, reject) => {
-        if (window.emailjs && typeof window.emailjs.send === 'function') {
-            console.debug('[EmailJS] SDK already available, init (safe)');
-            try { window.emailjs.init(PUBLIC_KEY); } catch (e) { console.debug('[EmailJS] init error (ignored):', e); }
-            return resolve(window.emailjs);
-        }
-
-        const existing = Array.from(document.scripts).find(s => s.src && s.src.includes('@emailjs/browser'));
-        if (existing) {
-            const onLoad = () => {
-                existing.removeEventListener('load', onLoad);
-                existing.removeEventListener('error', onError);
-                if (window.emailjs) {
-                    try { window.emailjs.init(PUBLIC_KEY); } catch (e) {}
-                    return resolve(window.emailjs);
-                }
-                return reject(new Error('EmailJS loaded but global missing'));
-            };
-            const onError = () => {
-                existing.removeEventListener('load', onLoad);
-                existing.removeEventListener('error', onError);
-                reject(new Error('Failed to load EmailJS SDK (existing script)'));
-            };
-            existing.addEventListener('load', onLoad);
-            existing.addEventListener('error', onError);
-            return;
-        }
-
-        const s = document.createElement('script');
-        s.src = EMAILJS_SDK_URL;
-        s.async = true;
-        s.onload = () => {
-            if (window.emailjs) {
-                try { window.emailjs.init(PUBLIC_KEY); } catch (e) { console.debug('[EmailJS] init error', e); }
-                resolve(window.emailjs);
-            } else {
-                reject(new Error('EmailJS SDK loaded but `emailjs` global is missing'));
-            }
-        };
-        s.onerror = () => reject(new Error('Failed to load EmailJS SDK (network)'));
-        document.head.appendChild(s);
-
-        setTimeout(() => reject(new Error('Timed out loading EmailJS SDK')), timeoutMs);
-    });
-}
-
-function withTimeout(promise, ms, message = 'Operation timed out') {
-    return Promise.race([
-        promise,
-        new Promise((_, reject) => setTimeout(() => reject(new Error(message)), ms))
-    ]);
-}
-
 const contactForm = document.querySelector('#contact-form');
 if (contactForm) {
     const statusEl = document.getElementById('form-status');
@@ -143,64 +112,26 @@ if (contactForm) {
         }
 
         setStatus('Sending message…');
-        console.debug('[Contact] Attempting to load EmailJS SDK and send');
+        console.debug('[Contact] Attempting to send via EmailJS');
 
-        withTimeout(loadEmailJSSDK(), 10000, 'EmailJS SDK load timed out')
+        getEmailJS()
             .then(() => {
-                if (window.emailjs && typeof window.emailjs.send === 'function') {
-                    console.debug('[Contact] SDK loaded — calling emailjs.send');
-                    return withTimeout(
-                        window.emailjs.send(SERVICE_ID, TEMPLATE_ID, {
-                            to_email: 'grgnrzmnn@gmail.com',
-                            from_name: name,
-                            reply_to: email,
-                            message: message
-                        }, PUBLIC_KEY),
-                        10000,
-                        'EmailJS send via SDK timed out'
-                    );
-                }
-                return Promise.reject(new Error('EmailJS SDK not available after load'));
+                console.debug('[Contact] EmailJS ready — calling send');
+                return window.emailjs.send(SERVICE_ID, TEMPLATE_ID, {
+                    to_email: 'grgnrzmnn@gmail.com',
+                    from_name: name,
+                    reply_to: email,
+                    message: message
+                });
             })
             .then((result) => {
-                console.debug('[Contact] SDK send result:', result);
+                console.debug('[Contact] Send succeeded:', result);
                 setStatus('Message sent! Thank you — I will reply as soon as I can.');
                 contactForm.reset();
             })
-            .catch((sdkError) => {
-                console.warn('[Contact] SDK path failed or timed out:', sdkError);
-                setStatus('Trying alternate send method…');
-
-                return fetch('https://api.emailjs.com/api/v1.0/email/send', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        service_id: SERVICE_ID,
-                        template_id: TEMPLATE_ID,
-                        user_id: PUBLIC_KEY,
-                        template_params: {
-                            to_email: 'grgnrzmnn@gmail.com',
-                            from_name: name,
-                            reply_to: email,
-                            message: message
-                        }
-                    })
-                })
-                .then(async response => {
-                    const text = await response.text().catch(() => '');
-                    if (response.ok) {
-                        console.debug('[Contact] REST send succeeded:', response.status, text);
-                        setStatus('Message sent! Thank you — I will reply as soon as I can.');
-                        contactForm.reset();
-                    } else {
-                        console.error('[Contact] REST send failed:', response.status, text);
-                        setStatus('Failed to send message. Please try again later or email me directly.', true);
-                    }
-                })
-                .catch(error => {
-                    console.error('[Contact] REST fetch error:', error);
-                    setStatus('An error occurred while sending. Please try again later.', true);
-                });
+            .catch((error) => {
+                console.error('[Contact] Send failed:', error);
+                setStatus('Failed to send message. Please try again later or email me directly.', true);
             })
             .finally(() => {
                 if (submitBtn) {
@@ -210,7 +141,6 @@ if (contactForm) {
             });
     });
 }
-
 
 const style = document.createElement('style');
 style.textContent = `
