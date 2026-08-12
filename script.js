@@ -46,9 +46,6 @@ document.querySelectorAll('.skill-card, .education-card, .info-item, .timeline-c
     observer.observe(el);
 });
 
-// EmailJS removed — contact section should now be static in the HTML with only email, location, LinkedIn, and GitHub links.
-// Any existing form with id="contact-form" will no longer attempt to send messages.
-
 const style = document.createElement('style');
 style.textContent = `
     .skill-card, .education-card, .info-item, .timeline-content {
