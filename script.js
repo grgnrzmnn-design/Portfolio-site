@@ -2,8 +2,6 @@ const PUBLIC_KEY = 'sgdQIdSdXs4BchEI6';
 const SERVICE_ID = 'service_wz2pglu';
 const TEMPLATE_ID = 'template_e9tym0u';
 
-// Remove the duplicate SDK loading logic since it's already in HTML
-// Just wait for emailjs to be available
 function getEmailJS(timeoutMs = 5000) {
     return new Promise((resolve, reject) => {
         if (window.emailjs && typeof window.emailjs.send === 'function') {
