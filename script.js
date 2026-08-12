@@ -1,34 +1,4 @@
-const PUBLIC_KEY = 'sgdQIdSdXs4BchEI6';
-const SERVICE_ID = 'service_wz2pglu';
-const TEMPLATE_ID = 'template_e9tym0u';
-
-function getEmailJS(timeoutMs = 5000) {
-    return new Promise((resolve, reject) => {
-        if (window.emailjs && typeof window.emailjs.send === 'function') {
-            // attempt to init (safe to call multiple times)
-            if (typeof window.emailjs.init === 'function' && PUBLIC_KEY) {
-                try { window.emailjs.init(PUBLIC_KEY); } catch (e) { console.warn('EmailJS init() threw:', e); }
-            }
-            return resolve(window.emailjs);
-        }
-        
-        let attempts = 0;
-        const check = setInterval(() => {
-            attempts++;
-            if (window.emailjs && typeof window.emailjs.send === 'function') {
-                clearInterval(check);
-                if (typeof window.emailjs.init === 'function' && PUBLIC_KEY) {
-                    try { window.emailjs.init(PUBLIC_KEY); } catch (e) { console.warn('EmailJS init() threw:', e); }
-                }
-                return resolve(window.emailjs);
-            }
-            if (attempts > timeoutMs / 100) {
-                clearInterval(check);
-                reject(new Error('EmailJS not available'));
-            }
-        }, 100);
-    });
-}
+function noop() {}
 
 const hamburger = document.querySelector('.hamburger');
 const navMenu = document.querySelector('.nav-menu');
@@ -76,86 +46,8 @@ document.querySelectorAll('.skill-card, .education-card, .info-item, .timeline-c
     observer.observe(el);
 });
 
-const contactForm = document.querySelector('#contact-form');
-if (contactForm) {
-    const statusEl = document.getElementById('form-status');
-
-    function setStatus(text, isError = false) {
-        if (!statusEl) return;
-        statusEl.textContent = text;
-        statusEl.style.color = isError ? '#c0392b' : '#2ecc71';
-    }
-
-    contactForm.addEventListener('submit', function (e) {
-        e.preventDefault();
-        console.debug('[Contact] submit');
-
-        const honeypot = contactForm.querySelector('input[name="company"]');
-        if (honeypot && honeypot.value) {
-            console.debug('[Contact] honeypot filled — likely bot, aborting');
-            return;
-        }
-
-        const submitBtn = contactForm.querySelector('button[type="submit"]');
-        const originalBtnText = submitBtn ? submitBtn.textContent : '';
-        if (submitBtn) {
-            submitBtn.disabled = true;
-            submitBtn.textContent = 'Sending…';
-        }
-
-        const name = (contactForm.querySelector('input[name="from_name"]') || {}).value || '';
-        const email = (contactForm.querySelector('input[name="reply_to"]') || {}).value || '';
-        const message = (contactForm.querySelector('textarea[name="message"]') || {}).value || '';
-
-        if (!name.trim() || !email.trim() || !message.trim()) {
-            setStatus('Please complete all fields before sending.', true);
-            if (submitBtn) {
-                submitBtn.disabled = false;
-                submitBtn.textContent = originalBtnText;
-            }
-            return;
-        }
-
-        setStatus('Sending message…');
-        console.debug('[Contact] Attempting to send via EmailJS');
-
-        getEmailJS()
-            .then(() => {
-                console.debug('[Contact] EmailJS ready — calling send');
-                // template variable names must match what's in your EmailJS template
-                const templateParams = {
-                    to_email: 'grgnrzmnn@gmail.com',
-                    from_name: name,
-                    reply_to: email,
-                    message: message
-                };
-
-                // quick runtime sanity-check: ensure service/template ids are set
-                if (!SERVICE_ID || !TEMPLATE_ID) {
-                    throw new Error('Missing EmailJS SERVICE_ID or TEMPLATE_ID');
-                }
-
-                return window.emailjs.send(SERVICE_ID, TEMPLATE_ID, templateParams);
-            })
-            .then((result) => {
-                console.debug('[Contact] Send succeeded:', result);
-                setStatus('Message sent! Thank you — I will reply as soon as I can.');
-                contactForm.reset();
-            })
-            .catch((error) => {
-                // emailjs may return an object with .text or .status/text in different SDK versions
-                console.error('[Contact] Send failed:', error);
-                const serverMsg = error && (error.text || error.message || (error.status && JSON.stringify(error.status)) || JSON.stringify(error));
-                setStatus('Failed to send message. ' + (serverMsg ? serverMsg : 'Please try again later or email me directly.'), true);
-            })
-            .finally(() => {
-                if (submitBtn) {
-                    submitBtn.disabled = false;
-                    submitBtn.textContent = originalBtnText;
-                }
-            });
-    });
-}
+// EmailJS removed — contact section should now be static in the HTML with only email, location, LinkedIn, and GitHub links.
+// Any existing form with id="contact-form" will no longer attempt to send messages.
 
 const style = document.createElement('style');
 style.textContent = `
