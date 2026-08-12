@@ -2,7 +2,6 @@ const EMAILJS_SDK_URL = 'https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/in
 const PUBLIC_KEY = 'sgdQIdSdXs4BchEI6';
 const SERVICE_ID = 'service_wz2pglu';
 const TEMPLATE_ID = 'template_e9tym0u';
-
 const hamburger = document.querySelector('.hamburger');
 const navMenu = document.querySelector('.nav-menu');
 
@@ -49,8 +48,6 @@ document.querySelectorAll('.skill-card, .education-card, .info-item, .timeline-c
     observer.observe(el);
 });
 
-// --- Email sending: improved logging, timeout and fallback ---
-// Load EmailJS SDK (idempotent) with timeout
 function loadEmailJSSDK(timeoutMs = 8000) {
     return new Promise((resolve, reject) => {
         if (window.emailjs && typeof window.emailjs.send === 'function') {
@@ -59,7 +56,6 @@ function loadEmailJSSDK(timeoutMs = 8000) {
             return resolve(window.emailjs);
         }
 
-        // If a script tag already exists that looks like EmailJS, attach listeners
         const existing = Array.from(document.scripts).find(s => s.src && s.src.includes('@emailjs/browser'));
         if (existing) {
             const onLoad = () => {
@@ -81,7 +77,6 @@ function loadEmailJSSDK(timeoutMs = 8000) {
             return;
         }
 
-        // otherwise inject
         const s = document.createElement('script');
         s.src = EMAILJS_SDK_URL;
         s.async = true;
@@ -96,12 +91,10 @@ function loadEmailJSSDK(timeoutMs = 8000) {
         s.onerror = () => reject(new Error('Failed to load EmailJS SDK (network)'));
         document.head.appendChild(s);
 
-        // timeout guard
         setTimeout(() => reject(new Error('Timed out loading EmailJS SDK')), timeoutMs);
     });
 }
 
-// Helper: timeout wrapper for a Promise
 function withTimeout(promise, ms, message = 'Operation timed out') {
     return Promise.race([
         promise,
@@ -123,7 +116,6 @@ if (contactForm) {
         e.preventDefault();
         console.debug('[Contact] submit');
 
-        // honeypot
         const honeypot = contactForm.querySelector('input[name="company"]');
         if (honeypot && honeypot.value) {
             console.debug('[Contact] honeypot filled — likely bot, aborting');
@@ -153,7 +145,6 @@ if (contactForm) {
         setStatus('Sending message…');
         console.debug('[Contact] Attempting to load EmailJS SDK and send');
 
-        // Try SDK with a timeout; if it fails or times out, fallback to REST
         withTimeout(loadEmailJSSDK(), 10000, 'EmailJS SDK load timed out')
             .then(() => {
                 if (window.emailjs && typeof window.emailjs.send === 'function') {
@@ -180,7 +171,6 @@ if (contactForm) {
                 console.warn('[Contact] SDK path failed or timed out:', sdkError);
                 setStatus('Trying alternate send method…');
 
-                // Fallback to EmailJS REST API
                 return fetch('https://api.emailjs.com/api/v1.0/email/send', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
